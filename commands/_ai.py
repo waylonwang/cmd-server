@@ -13,7 +13,7 @@ __registry__ = cr = CommandRegistry()
 def tuling123(args_text, ctx_msg, internal=False):
     url = 'http://www.tuling123.com/openapi/api'
     data = {
-        'key': os.environ.get('TURING123_API_KEY'),
+        'key': 'c268de590aed467dba359955708c38c8',
         'info': args_text,
         'userid': get_source(ctx_msg)
     }
@@ -23,7 +23,7 @@ def tuling123(args_text, ctx_msg, internal=False):
         if internal:
             return json
         if int(json.get('code', 0)) == 100000:
-            reply = json.get('text', '')
+            reply = '[CQ:at,qq='+ ctx_msg.get('sender_id', '')+']' + json.get('text', '')
         else:
             # Is not text type
             reply = '腊鸡图灵机器人返回了一堆奇怪的东西，就不发出来了'

@@ -40,8 +40,8 @@ def take(args_text, ctx_msg, allow_interactive=True):
         return _take_interactively(args_text, ctx_msg, source)
 
     conn = _open_db_conn()
-    dt_unix = int(datetime.now(tz=pytz.utc).timestamp())
     target = get_target(ctx_msg)
+    datetime_unix = int(datetime.now(tz=pytz.utc).timestamp())
     conn.execute(
         'INSERT INTO cmd_note (content, dt, target) VALUES (?, ?, ?)',
         (args_text, dt_unix, target)

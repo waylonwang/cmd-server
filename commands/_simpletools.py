@@ -4,7 +4,7 @@ import requests
 from lxml import etree
 
 from command import CommandRegistry
-from commands import core, ai
+from commands import core, _ai
 
 __registry__ = cr = CommandRegistry()
 

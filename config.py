@@ -10,9 +10,9 @@ config = {
         {
             'via': 'coolq_http_api',
             'login_id': '3010897940',
-            'superuser_id': '3010897940',
-            'api_url': 'http://127.0.0.1:5700',
-            'token': 'LRqxVa7G3a9c'
+            'superuser_id': '216376',
+            'api_url': 'http://192.168.3.181:5700',
+            'token': ''
         }
-    ]
+    ],
 }
