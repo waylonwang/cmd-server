@@ -91,7 +91,7 @@ def speak_query(_,ctx_msg, argv=None):
 
 @cr.register('query_today', 'query-today')
 @cr.restrict(full_command_only=True, superuser_only=True)
-@split_arguments(maxsplit=1)
+@split_arguments(maxsplit=2)
 def query_today(_,ctx_msg, argv=None):
     _check_admin_group(ctx_msg)
 
@@ -103,8 +103,8 @@ def query_today(_,ctx_msg, argv=None):
         return
 
     result=_query(ctx_msg,user=argv[0],group=argv[1])
-    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] ' + argv[0].replace('@', '', 1) + '今天在' + str(argv[1])
-              + '共发言:' + str(result[0]) + ',有效发言:' + str(result[1]), ctx_msg)
+    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] ' + argv[0].replace('@', '', 1) + '今天在[' + str(argv[1])
+              + ']共发言:' + str(result[0]) + ',有效发言:' + str(result[1]), ctx_msg)
 
 
 def _query(ctx_msg,user=None,group=None,date=None):
@@ -140,3 +140,109 @@ def _query(ctx_msg,user=None,group=None,date=None):
     if result[0] == None:
         result = (0,0)
     return result
+
+@cr.register('total_today', 'total-today')
+@cr.restrict(full_command_only=True, superuser_only=True)
+@split_arguments(maxsplit=1)
+def total_today(_,ctx_msg, argv=None):
+    _check_admin_group(ctx_msg)
+
+    def _send_error_msg():
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.total_today <group_id>', ctx_msg)
+
+    if len(argv) != 1:
+        _send_error_msg()
+        return
+
+    date = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
+    group = argv[0]
+    if group == None:
+        group = get_target(ctx_msg)
+    else:
+        new_ctx = ctx_msg.copy()
+        new_ctx['group_id']=group
+        new_ctx['group_tid'] = group
+        group = get_target(new_ctx)
+
+    conn = _open_db_conn()
+    cursor = conn.execute("SELECT SUM(1) AS fullcount ,"
+                          "SUM("
+                          " CASE WHEN CAST(charcount AS INT) >= ("
+                          "     SELECT CAST(param_value AS INT) "
+                          "     FROM sys_params WHERE param_name='baseline') "
+                          " THEN 1 ELSE 0 END) AS validcount "
+                          "FROM speak WHERE target=? AND date=? ",
+                          (group, date))
+    result = cursor.fetchone()
+    conn.close()
+    if result[0] == None:
+        result = (0,0)
+
+    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天共发言:' + str(result[0]) + ',有效发言:' + str(result[1]), ctx_msg)
+
+@cr.register('top5_today', 'top5-today')
+@cr.restrict(full_command_only=True, superuser_only=True)
+@split_arguments(maxsplit=1)
+def top5_today(_,ctx_msg, argv=None):
+    _check_admin_group(ctx_msg)
+
+    def _send_error_msg():
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.top5_today <group_id>', ctx_msg)
+
+    if len(argv) != 1:
+        _send_error_msg()
+        return
+
+    date = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
+    group = argv[0]
+    if group == None:
+        group = get_target(ctx_msg)
+    else:
+        new_ctx = ctx_msg.copy()
+        new_ctx['group_id']=group
+        new_ctx['group_tid'] = group
+        group = get_target(new_ctx)
+
+    conn = _open_db_conn()
+    cursor = conn.execute("SELECT sender_name,COUNT(1) AS cnt "
+                          "FROM speak WHERE target=? AND date=? "
+                          "GROUP BY target,sender_id,sender_name ORDER BY cnt DESC LIMIT 5",
+                          (group, date))
+    result = list(set([x[0] + ':' + str(x[1]) + '\n' for x in list(cursor)]))
+    conn.close()
+
+    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天发言前五:\n' + ', '.join(result), ctx_msg)
+
+@cr.register('vaildtop5_today', 'vaildtop5-today')
+@cr.restrict(full_command_only=True, superuser_only=True)
+@split_arguments(maxsplit=1)
+def vaildtop5_today(_,ctx_msg, argv=None):
+    _check_admin_group(ctx_msg)
+
+    def _send_error_msg():
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.vaildtop5_today <group_id>', ctx_msg)
+
+    if len(argv) != 1:
+        _send_error_msg()
+        return
+
+    date = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
+    group = argv[0]
+    if group == None:
+        group = get_target(ctx_msg)
+    else:
+        new_ctx = ctx_msg.copy()
+        new_ctx['group_id']=group
+        new_ctx['group_tid'] = group
+        group = get_target(new_ctx)
+
+    conn = _open_db_conn()
+    cursor = conn.execute("SELECT sender_name,COUNT(1) AS cnt "
+                          "FROM speak WHERE target=? AND date=? AND CAST(charcount AS INT) >= "
+                          "(SELECT CAST(param_value AS INT) FROM sys_params WHERE param_name='baseline') "
+                          "GROUP BY target,sender_id,sender_name ORDER BY cnt DESC LIMIT 5",
+                          (group, date))
+    result = list(set([x[0] + ':' + str(x[1]) + '\n' for x in list(cursor)]))
+    conn.close()
+
+    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天有效发言前五:\n' + ', '.join(result), ctx_msg)

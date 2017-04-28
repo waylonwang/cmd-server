@@ -59,6 +59,12 @@ def adminhelp(_, ctx_msg):
         '(9)查询交换名单：admin.exchange_list\n'
         '(10)设置最低发言字数：admin.set_param \n<name>,<value>\n'
         '(11)查询最低发言字数：admin.get_param \n<value>',
-        '(12)查询群成员发言数：speak.query_today \n<nick|qq>,<group_id>',
+        ctx_msg
+    )
+    echo(
+        '(12)查询群成员发言数：speak.query_today \n<nick|qq>,<group_id>\n'
+        '(13)查询群发言总数：speak.total_today \n<group_id>\n'
+        '(14)查询群发言Top5：speak.top5_today \n<group_id>\n'
+        '(15)查询群有效发言Top5：speak.vaildtop5_today \n<group_id>',
         ctx_msg
     )
