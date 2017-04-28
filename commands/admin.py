@@ -378,7 +378,7 @@ def get_param(_, ctx_msg, argv=None):
 
 
 def _read_param(ctx_msg, argv=None):
-    name = argv
+    name = argv[0]
     conn = _open_db_conn()
     cursor = conn.execute('SELECT param_value FROM sys_params where param_name=?', (name,))
     try:
