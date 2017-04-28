@@ -360,7 +360,6 @@ def set_param(_, ctx_msg, argv=None):
 
 @cr.register('get_param', 'get-param')
 @cr.restrict(full_command_only=True, superuser_only=True)
-@split_arguments(maxsplit=1)
 def get_param(_, ctx_msg, argv=None):
     _check_admin_group(ctx_msg)
 
