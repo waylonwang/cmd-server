@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from datetime import datetime
-from commands.scope import exchange_ctx_msg
+from commands.admin import _exchange_ctx_msg,_check_admin_group
 
 import pytz
 
@@ -43,22 +43,22 @@ def _open_db_conn():
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_date ON speak_count(date)""")
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_fullcount ON speak_count(fullcount)""")
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_rulecount ON speak_count(rulecount)""")
-    conn.execute("""CREATE TABLE IF NOT EXISTS speak_param (
-        pkey TEXT PRIMARY KEY NOT NULL,
-        pvalue TEXT NOT NULL
-        )""")
-    conn.execute("""INSERT INTO speak_param (pkey,pvalue) 
-        SELECT 'baseline','6' WHERE NOT EXISTS (
-            SELECT 1 FROM speak_param WHERE pkey = 'baseline'
-            )""")
-    # conn.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_speak_param ON speak_param(target,key)""")
+    # conn.execute("""CREATE TABLE IF NOT EXISTS sys_params (
+    #     pkey TEXT PRIMARY KEY NOT NULL,
+    #     pvalue TEXT NOT NULL
+    #     )""")
+    # conn.execute("""INSERT INTO sys_params (pkey,pvalue)
+    #     SELECT 'baseline','6' WHERE NOT EXISTS (
+    #         SELECT 1 FROM sys_params WHERE pkey = 'baseline'
+    #         )""")
+    # conn.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_sys_params ON sys_params(target,key)""")
     conn.commit()
     return conn
 
 @check_target
 def speak_record(_, ctx_msg):
     target = get_target(ctx_msg)
-    date_text = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
+    date = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
     time_text = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%H:%M')
     timemark_unix = int(datetime.now(tz=pytz.timezone('Asia/Shanghai')).timestamp())
     sender_id = ctx_msg.get('sender_id')
@@ -70,7 +70,7 @@ def speak_record(_, ctx_msg):
     try:
         conn = _open_db_conn()
         conn.execute('INSERT INTO speak (target,sender_id,sender_name,date,time,timemark,message,charcount) VALUES (?,?,?,?,?,?,?,?)',
-                     (target,sender_id,sender_name,date_text,time_text,timemark_unix,message,cnt))
+                     (target,sender_id,sender_name,date,time_text,timemark_unix,message,cnt))
         conn.commit()
     finally:
         conn.close()
@@ -79,61 +79,64 @@ def speak_record(_, ctx_msg):
 @split_arguments(maxsplit=1)
 @check_target
 def speak_query(_,ctx_msg, argv=None):
-    ctx_msg = exchange_ctx_msg(ctx_msg, 'in')
-    date_text = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
-    conn = _open_db_conn()
     if len(argv) == 0 :
-        cursor = conn.execute("SELECT count(id) FROM speak where target=? and sender_id=? and date=? "
-                              "and charcount> (select cast(pvalue as int) from speak_param where pkey='baseline')",
-                              (get_target(ctx_msg), ctx_msg.get('sender_id', ''), date_text))
-        rule_cnt = cursor.fetchone()[0]
-        cursor = conn.execute('SELECT count(id) FROM speak where target=? and sender_id=? and date=?',
-                              (get_target(ctx_msg), ctx_msg.get('sender_id', ''), date_text))
-        today_cnt = cursor.fetchone()[0]
-        conn.close()
-        core.echo('[CQ:at,qq='+ ctx_msg.get('sender_id')+'] 你今天共发言:' + str(today_cnt)
-                  + ',有效发言:'+ str(rule_cnt), ctx_msg)
+        user = None
+        utext = '你'
     else:
-        cursor = conn.execute("SELECT count(id) FROM speak where target=? and sender_name=? and date=? "
-                              "and charcount> (select cast(pvalue as int) from speak_param where pkey='baseline')",
-                              (get_target(ctx_msg), argv[0].replace('@','',1), date_text))
-        rule_cnt = cursor.fetchone()[0]
-        cursor = conn.execute('SELECT count(id) FROM speak where target=? and sender_name=? and date=?',
-                              (get_target(ctx_msg), argv[0].replace('@','',1), date_text))
-        today_cnt = cursor.fetchone()[0]
-        conn.close()
-        core.echo('[CQ:at,qq='+ ctx_msg.get('sender_id')+'] '+ argv[0].replace('@','',1) + '今天共发言:'
-                  + str(today_cnt) + ',有效发言:'+ str(rule_cnt), ctx_msg)
+        user = argv[0]
+        utext = user.replace('@', '', 1)
+    result=_query(ctx_msg,user=user)
+    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] ' + utext + '今天共发言:' + str(result[0])
+      + ',有效发言:' + str(result[1]), ctx_msg)
 
-@cr.register('set_baseline','set-baseline')
-@cr.restrict(full_command_only=True, superuser_only=True,allow_private=True, allow_discuss=False, allow_group=False)
+@cr.register('query_today', 'query-today')
+@cr.restrict(full_command_only=True, superuser_only=True)
 @split_arguments(maxsplit=1)
-def set_baseline(_, ctx_msg, argv=None):
-    def _send_error_msg():
-        core.echo('参数不正确。\n\n正确使用方法：\nspeak.set_baseline <value>', ctx_msg)
+def query_today(_,ctx_msg, argv=None):
+    _check_admin_group(ctx_msg)
 
-    if len(argv) != 1:
+    def _send_error_msg():
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.query_today <nick|qq>,<group_id>', ctx_msg)
+
+    if len(argv) != 2:
         _send_error_msg()
         return
 
-    value=argv[0]
-    conn = _open_db_conn()
-    conn.execute('INSERT OR REPLACE INTO speak_param (pkey,pvalue) VALUES (?,?)', ('baseline',argv[0]))
-    conn.commit()
-    conn.close()
-    core.echo('成功设置最低发言数:' + value, ctx_msg)
+    result=_query(ctx_msg,user=argv[0],group=argv[1])
+    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] ' + argv[0].replace('@', '', 1) + '今天在' + str(argv[1])
+              + '共发言:' + str(result[0]) + ',有效发言:' + str(result[1]), ctx_msg)
 
 
-@cr.register('baseline')
-@cr.restrict(full_command_only=True, superuser_only=True,allow_private=True, allow_discuss=False, allow_group=False)
-def baseline(_, ctx_msg, internal=False):
-    conn = _open_db_conn()
-    cursor = conn.execute("SELECT pvalue FROM speak_param where pkey='baseline'")
-    result = list(set([x[0] for x in list(cursor)]))  # Get targets and remove duplications
-    conn.close()
-    if internal:
-        return result
-    if result:
-        core.echo('最低发言数:'+','.join(result), ctx_msg)
+def _query(ctx_msg,user=None,group=None,date=None):
+    # ctx_msg = _exchange_ctx_msg(ctx_msg, 'in')
+
+    if date == None:
+        date = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
+
+    if group == None:
+        group = get_target(ctx_msg)
     else:
-        core.echo('尚未有最低发言数设置', ctx_msg)
+        new_ctx = ctx_msg.copy()
+        new_ctx['group_id']=group
+        new_ctx['group_tid'] = group
+        group = get_target(new_ctx)
+
+    if user == None:
+        user = ctx_msg.get('sender_id', '')
+    else:
+        user = user.replace('@','',1)
+
+    conn = _open_db_conn()
+    cursor = conn.execute("SELECT SUM(1) AS fullcount ,"
+                          "SUM("
+                          " CASE WHEN CAST(charcount AS INT) >= ("
+                          "     SELECT CAST(param_value AS INT) "
+                          "     FROM sys_params WHERE param_name='baseline') "
+                          " THEN 1 ELSE 0 END) AS validcount "
+                          "FROM speak WHERE target=? AND (sender_id=? OR sender_name=?) AND date=? ",
+                          (group, user, user, date))
+    result = cursor.fetchone()
+    conn.close()
+    if result[0] == None:
+        result = (0,0)
+    return result

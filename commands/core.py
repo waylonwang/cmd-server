@@ -1,6 +1,6 @@
 from command import CommandRegistry
 from msg_src_adapter import get_adapter_by_ctx
-from commands.scope import exchange_ctx_msg
+from commands.admin import _exchange_ctx_msg
 
 __registry__ = cr = CommandRegistry()
 
@@ -10,7 +10,7 @@ def echo(args_text, ctx_msg, internal=False):
     if internal:
         return None
     else:
-        ctx_msg = exchange_ctx_msg(ctx_msg,'out')
+        ctx_msg = _exchange_ctx_msg(ctx_msg, 'out')
         return get_adapter_by_ctx(ctx_msg).send_message(
             target=ctx_msg,
             content=args_text
@@ -45,19 +45,20 @@ def echo(args_text, ctx_msg, internal=False):
 def adminhelp(_, ctx_msg):
     echo(
         '你好，超级管理员！\n'
-        '(1)设置白名单：scope.allow \ngroup|discuss|private,<account-to-block>\n'
-        '(2)设置黑名单：scope.block \ngroup|discuss|private,<account-to-block>\n'
-        '(3)取消白名单：scope.unallow \ngroup|discuss|private,<account-to-block>\n'
-        '(4)取消黑名单：scope.unblock \ngroup|discuss|private,<account-to-block>\n'
-        '(5)查询白名单：scope.allow_list\n'
-        '(6)查询黑名单：scope.block_list',
+        '(1)设置白名单：admin.allow \ngroup|discuss|private,<account-to-block>\n'
+        '(2)设置黑名单：admin.block \ngroup|discuss|private,<account-to-block>\n'
+        '(3)取消白名单：admin.unallow \ngroup|discuss|private,<account-to-block>\n'
+        '(4)取消黑名单：admin.unblock \ngroup|discuss|private,<account-to-block>\n'
+        '(5)查询白名单：admin.allow_list\n'
+        '(6)查询黑名单：admin.block_list',
         ctx_msg
     )
     echo(
-        '(7)设置交换名单：scope.exchange \nin|out,<account-orig>,<account-dest>\n'
-        '(8)取消交换名单：scope.unexchange \nin|out,<account-orig>,<account-dest>\n'
-        '(9)查询交换名单：scope.exchange_list\n'
-        '(10)设置最低发言数：speak.set_baseline \n<value>\n'
-        '(11)查询最低发言数：speak.baseline',
+        '(7)设置交换名单：admin.exchange \nin|out,<account-orig>,<account-dest>\n'
+        '(8)取消交换名单：admin.unexchange \nin|out,<account-orig>,<account-dest>\n'
+        '(9)查询交换名单：admin.exchange_list\n'
+        '(10)设置最低发言字数：admin.set_param \n<name>,<value>\n'
+        '(11)查询最低发言字数：admin.get_param \n<value>',
+        '(12)查询群成员发言数：speak.query_today \n<nick|qq>,<group_id>',
         ctx_msg
     )

@@ -2,7 +2,7 @@
 This filter intercepts messages from blocked targets (blocked using sudo.block command).
 """
 
-from commands.scope import exchange_ctx_msg
+from commands.admin import _exchange_ctx_msg
 from filter import as_filter
 from little_shit import get_target
 

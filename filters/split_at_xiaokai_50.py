@@ -28,6 +28,7 @@ def _split_at_xiaokai(ctx_msg):
             text = text[len(at_me):]
         else:
             # Not starts with '@'
-            return False
+            # TODO 支持无须@的命令，在命令中增加装饰器来声明
+            return True
         ctx_msg['text'] = text.lstrip()
     return True
