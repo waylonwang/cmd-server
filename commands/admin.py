@@ -392,6 +392,6 @@ def _read_param(ctx_msg, argv=None):
 
 def _check_admin_group(ctx_msg):
     if ctx_msg.get('msg_type','') == 'group':
-        if _read_param(ctx_msg, 'admin_group') != ctx_msg.get('group_id', ''):
+        if _read_param(ctx_msg, ('admin_group',)) != ctx_msg.get('group_id', ''):
             # core.echo('此命令只能在管理组中使用', ctx_msg)
             raise CommandScopeError('非管理组')
