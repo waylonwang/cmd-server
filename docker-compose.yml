@@ -6,7 +6,7 @@ services:
     network_mode: 'container:msg-server'
     volumes:
       - ./:/cmd-server
-      - /data/cmd-server:/data
+      - /data/cmd-server:/cmd-server/data
       - /tmp:/tmp
     environment:
       - TURING123_API_KEY=YOUR_API_KEY
