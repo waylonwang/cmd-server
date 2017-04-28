@@ -1,6 +1,6 @@
 config = {
-    'fallback_command': 'natural_language.process',
-    'fallback_command_after_nl_processors': 'ai.tuling123',
+    'fallback_command': '', # ''natural_language.process',
+    'fallback_command_after_nl_processors': '', # ''ai.tuling123',
     'command_start_flags': ('', '/', '／'),  # Add '' (empty string) here to allow commands without start flags
     'command_name_separators': ('->', '::', '/'),  # Regex
     'command_args_start_flags': ('，', '：', ',', ', ', ':', ': ','[\\s]'),  # Regex
@@ -9,10 +9,10 @@ config = {
     'message_sources': [
         {
             'via': 'coolq_http_api',
-            'login_id': '3010897940',
+            'login_id': '3546065794',
             'superuser_id': '216376',
-            'api_url': 'http://192.168.3.181:5700',
-            'token': ''
+            'api_url': 'http://127.0.0.1:5700',
+            'token': 'LRqxVa7G3a9c'
         }
     ],
 }

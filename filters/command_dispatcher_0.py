@@ -70,7 +70,8 @@ def _dispatch_command(ctx_msg):
             ctx_msg['is_fallback'] = True
             cmdhub.call(command[0], command[1], ctx_msg)
         else:
-            core.echo('暂时还没有这个命令哦～', ctx_msg)
+            # core.echo('暂时还没有这个命令哦～', ctx_msg)
+            print('暂时还没有这个命令')
     except CommandPermissionError:
         core.echo('你没有权限使用这个命令哦～', ctx_msg)
     except CommandScopeError as se:
@@ -78,7 +79,8 @@ def _dispatch_command(ctx_msg):
     except Exception as e:
         # Ignore all exceptions raised during command running
         print(e)
-        core.echo('程序执行命令时发生了一点错误，可能没法回复啦～', ctx_msg)
+        print('程序执行命令时发生了错误')
+        # core.echo('程序执行命令时发生了一点错误，可能没法回复啦～', ctx_msg)
 
 
 def _add_registry_mod_cb(mod):
