@@ -1,7 +1,7 @@
 FROM python:3.5.1
 MAINTAINER Waylon Wang <waylon.act@gmail.com>
 
-WORKDIR /msg-server
+WORKDIR /cmd-server
 COPY *.py ./
 COPY msg_src_adapters msg_src_adapters
 COPY filters filters
@@ -20,6 +20,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
-VOLUME /msg-server
+VOLUME /cmd-server
 
-CMD python /msg-server/app.py
+CMD python /cmd-server/app.py
