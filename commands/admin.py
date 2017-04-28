@@ -370,7 +370,7 @@ def get_param(_, ctx_msg, argv=None):
     if len(argv) != 1:
         _send_error_msg()
         return
-    result = _read_param(ctx_msg, argv)
+    result = _read_param(ctx_msg, argv[0])
     if result:
         core.echo('系统参数' + argv + ':' + ','.join(result), ctx_msg)
     else:
@@ -378,7 +378,7 @@ def get_param(_, ctx_msg, argv=None):
 
 
 def _read_param(ctx_msg, argv=None):
-    name = argv[0]
+    name = argv
     conn = _open_db_conn()
     cursor = conn.execute('SELECT param_value FROM sys_params where param_name=?', (name,))
     try:
@@ -392,6 +392,6 @@ def _read_param(ctx_msg, argv=None):
 
 def _check_admin_group(ctx_msg):
     if ctx_msg.get('msg_type','') == 'group':
-        if _read_param(ctx_msg, ('admin_group',)) != ctx_msg.get('group_id', ''):
+        if _read_param(ctx_msg, 'admin_group') != ctx_msg.get('group_id', ''):
             # core.echo('此命令只能在管理组中使用', ctx_msg)
             raise CommandScopeError('非管理组')
