@@ -9,7 +9,7 @@ config = {
     'message_sources': [
         {
             'via': 'coolq_http_api',
-            'login_id': '3546065794',
+            'login_id': '3010897940',
             'superuser_id': '216376',
             'api_url': 'http://127.0.0.1:5700',
             'token': 'LRqxVa7G3a9c'
