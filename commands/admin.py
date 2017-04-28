@@ -73,8 +73,8 @@ def help(_, ctx_msg):
         '(7)设置交换名单：admin.exchange \nin|out,<account-orig>,<account-dest>\n'
         '(8)取消交换名单：admin.unexchange \nin|out,<account-orig>,<account-dest>\n'
         '(9)查询交换名单：admin.exchange_list\n'
-        '(10)设置最低发言字数：admin.set_param \n<name>,<value>\n'
-        '(11)查询最低发言字数：admin.get_param \n<value>',
+        '(10)设置系统参数：admin.set_param \n<name>,<value>\n'
+        '(11)查询系统参数：admin.get_param \n<name>',
         ctx_msg
     )
     core.echo(
