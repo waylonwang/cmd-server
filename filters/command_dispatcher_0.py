@@ -71,7 +71,7 @@ def _dispatch_command(ctx_msg):
             cmdhub.call(command[0], command[1], ctx_msg)
         else:
             # core.echo('暂时还没有这个命令哦～', ctx_msg)
-            print('暂时还没有这个命令')
+            print('暂时还没有这个命令:'+ ctx_msg['start_flag'] + ':' + ctx_msg['command'])
     except CommandPermissionError:
         core.echo('你没有权限使用这个命令哦～', ctx_msg)
     except CommandScopeError as se:
