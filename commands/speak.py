@@ -208,7 +208,8 @@ def top5_today(_,ctx_msg, argv=None):
                           "FROM speak WHERE target=? AND date=? "
                           "GROUP BY target,sender_id,sender_name ORDER BY cnt DESC LIMIT 5",
                           (group, date))
-    result = list(set([x[0] + ':' + str(x[1]) + '\n' for x in list(cursor)]))
+    cursor = sorted(cursor, key=lambda x: x[1], reverse=True)
+    result = list(set([x[0] + ':' + str(x[1]) for x in list(cursor)]))
     conn.close()
 
     core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天发言前五:\n' + ', '.join(result), ctx_msg)
