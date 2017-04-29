@@ -84,6 +84,7 @@ def __create_index(conn):
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_date ON speak_count(date)""")
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_fullcount ON speak_count(fullcount)""")
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_rulecount ON speak_count(rulecount)""")
+    conn.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_speak_wash ON speak_wash(rule)""")
 
 def __init_data(conn):
     conn.execute("""INSERT INTO allowed_target_list (target) 
@@ -101,4 +102,32 @@ def __init_data(conn):
     conn.execute("""INSERT INTO sys_params (param_name,param_value) 
         SELECT 'baseline','6' WHERE NOT EXISTS (
             SELECT 1 FROM sys_params WHERE param_name = 'baseline'
+            )""")
+    conn.execute("""INSERT INTO speak_wash (rule,replace)
+        SELECT '([^\[]*)\[CQ:at.qq=([^\]]*)\](.*)','\1_\3' WHERE NOT EXISTS (
+            SELECT 1 FROM speak_wash WHERE rule = '([^\[]*)\[CQ:at.qq=([^\]]*)\](.*)'
+            )""")
+    conn.execute("""INSERT INTO speak_wash (rule,replace)
+        SELECT '([^\[]*)(\[CQ:image.*\])(.*)','\1_\3' WHERE NOT EXISTS (
+            SELECT 1 FROM speak_wash WHERE rule = '([^\[]*)(\[CQ:image.*\])(.*)'
+            )""")
+    conn.execute("""INSERT INTO speak_wash (rule,replace)
+        SELECT '([^\[]*)(\[CQ:face.*\])(.*)','\1_\3' WHERE NOT EXISTS (
+            SELECT 1 FROM speak_wash WHERE rule = '([^\[]*)(\[CQ:face.*\])(.*)'
+            )""")
+    conn.execute("""INSERT INTO speak_wash (rule,replace)
+        SELECT '([^\[]*)(\[CQ:sface.*\])(.*)','\1_\3' WHERE NOT EXISTS (
+            SELECT 1 FROM speak_wash WHERE rule = '([^\[]*)(\[CQ:sface.*\])(.*)'
+            )""")
+    conn.execute("""INSERT INTO speak_wash (rule,replace)
+        SELECT '([^\[]*)(\[CQ:bface.*\])(.*)','\1_\3' WHERE NOT EXISTS (
+            SELECT 1 FROM speak_wash WHERE rule = '([^\[]*)(\[CQ:bface.*\])(.*)'
+            )""")
+    conn.execute("""INSERT INTO speak_wash (rule,replace)
+        SELECT '([^\[]*)(\[CQ:record.*\])(.*)','\1_\3' WHERE NOT EXISTS (
+            SELECT 1 FROM speak_wash WHERE rule = '([^\[]*)(\[CQ:record.*\])(.*)'
+            )""")
+    conn.execute("""INSERT INTO speak_wash (rule,replace)
+        SELECT '([^\[]*)(\[CQ:sign.*\])(.*)','\1_\3' WHERE NOT EXISTS (
+            SELECT 1 FROM speak_wash WHERE rule = '([^\[]*)(\[CQ:sign.*\])(.*)'
             )""")
