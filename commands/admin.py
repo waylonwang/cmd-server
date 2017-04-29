@@ -372,7 +372,7 @@ def get_param(_, ctx_msg, argv=None):
         return
     result = _read_param(ctx_msg, argv[0])
     if result:
-        core.echo('系统参数' + argv[0] + ':' + ','.join(result), ctx_msg)
+        core.echo('系统参数' + argv[0] + ':' + str(result), ctx_msg)
     else:
         core.echo('尚未有设置该系统参数', ctx_msg)
 
