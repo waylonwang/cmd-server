@@ -180,21 +180,22 @@ def total_today(_,ctx_msg, argv=None):
 
     core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天共发言:' + str(result[0]) + ',有效发言:' + str(result[1]), ctx_msg)
 
-@cr.register('top5_today', 'top5-today')
+@cr.register('top_today', 'top-today')
 @cr.restrict(full_command_only=True, superuser_only=True)
-@split_arguments(maxsplit=1)
-def top5_today(_,ctx_msg, argv=None):
+@split_arguments(maxsplit=2)
+def top_today(_,ctx_msg, argv=None):
     _check_admin_group(ctx_msg)
 
     def _send_error_msg():
-        core.echo('参数不正确。\n\n正确使用方法：\nspeak.top5_today <group_id>', ctx_msg)
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.top_today <group_id>,<count>', ctx_msg)
 
-    if len(argv) != 1:
+    if len(argv) != 2:
         _send_error_msg()
         return
 
     date = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
     group = argv[0]
+    count = argv[1]
     if group == None:
         group = get_target(ctx_msg)
     else:
@@ -204,31 +205,33 @@ def top5_today(_,ctx_msg, argv=None):
         group = get_target(new_ctx)
 
     conn = _open_db_conn()
-    cursor = conn.execute("SELECT sender_name,COUNT(1) AS cnt "
+    cursor = conn.execute("SELECT sender_id,sender_name,COUNT(1) AS cnt "
                           "FROM speak WHERE target=? AND date=? "
-                          "GROUP BY target,sender_id,sender_name ORDER BY cnt DESC LIMIT 5",
+                          "GROUP BY target,sender_id,sender_name ORDER BY cnt DESC LIMIT " + str(count),
                           (group, date))
-    cursor = sorted(cursor, key=lambda x: x[1], reverse=True)
-    result = list(set([x[0] + ':' + str(x[1]) for x in list(cursor)]))
+    result = ''
+    for x in cursor:
+        result = result + x[0] + '(' + x[1] + '):' + str(x[2]) + '\n'
     conn.close()
 
-    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天发言前五:\n' + ', '.join(result), ctx_msg)
+    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天发言前' + str(count) +':\n' + result, ctx_msg)
 
-@cr.register('vaildtop5_today', 'vaildtop5-today')
+@cr.register('vaildtop_today', 'vaildtop-today')
 @cr.restrict(full_command_only=True, superuser_only=True)
-@split_arguments(maxsplit=1)
-def vaildtop5_today(_,ctx_msg, argv=None):
+@split_arguments(maxsplit=2)
+def vaildtop_today(_,ctx_msg, argv=None):
     _check_admin_group(ctx_msg)
 
     def _send_error_msg():
-        core.echo('参数不正确。\n\n正确使用方法：\nspeak.vaildtop5_today <group_id>', ctx_msg)
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.vaildtop_today <group_id>,<count>', ctx_msg)
 
-    if len(argv) != 1:
+    if len(argv) != 2:
         _send_error_msg()
         return
 
     date = datetime.now(tz=pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
     group = argv[0]
+    count = argv[1]
     if group == None:
         group = get_target(ctx_msg)
     else:
@@ -238,12 +241,14 @@ def vaildtop5_today(_,ctx_msg, argv=None):
         group = get_target(new_ctx)
 
     conn = _open_db_conn()
-    cursor = conn.execute("SELECT sender_name,COUNT(1) AS cnt "
+    cursor = conn.execute("SELECT sender_id,sender_name,COUNT(1) AS cnt "
                           "FROM speak WHERE target=? AND date=? AND CAST(charcount AS INT) >= "
                           "(SELECT CAST(param_value AS INT) FROM sys_params WHERE param_name='baseline') "
-                          "GROUP BY target,sender_id,sender_name ORDER BY cnt DESC LIMIT 5",
+                          "GROUP BY target,sender_id,sender_name ORDER BY cnt DESC LIMIT " + str(count),
                           (group, date))
-    result = list(set([x[0] + ':' + str(x[1]) + '\n' for x in list(cursor)]))
+    result = ''
+    for x in cursor:
+        result = result + x[0] + '(' + x[1] + '):' + str(x[2]) + '\n'
     conn.close()
 
-    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天有效发言前五:\n' + ', '.join(result), ctx_msg)
+    core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] [' + str(argv[0]) + ']今天有效发言前' + str(count) +':\n' + result, ctx_msg)

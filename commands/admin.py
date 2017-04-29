@@ -80,8 +80,8 @@ def help(_, ctx_msg):
     core.echo(
         '(12)查询群成员发言数：speak.query_today \n<nick|qq>,<group_id>\n'
         '(13)查询群发言总数：speak.total_today \n<group_id>\n'
-        '(14)查询群发言Top5：speak.top5_today \n<group_id>\n'
-        '(15)查询群有效发言Top5：speak.vaildtop5_today \n<group_id>',
+        '(14)查询群发言Top X：speak.top_today \n<group_id>,<count>\n'
+        '(15)查询群有效发言Top X：speak.vaildtop_today \n<group_id>,<count>',
         ctx_msg
     )
 
