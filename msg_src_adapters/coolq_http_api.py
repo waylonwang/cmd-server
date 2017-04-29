@@ -29,7 +29,8 @@ class CoolQHttpApiAdapter(Adapter):
         new_ctx['time'] = ctx_msg['time']
         new_ctx['msg_type'] = ctx_msg['message_type']
         new_ctx['format'] = 'text'
-        new_ctx['content'] = ctx_msg['message']
+        new_ctx['content'] = ctx_msg['message'].replace('&amp;', '&').replace('&#91;', '[').replace('&#93;', ']')\
+            .replace('&#44;', ',')
 
         login_info = self.get_login_info()
         new_ctx['receiver_name'] = login_info['nickname']
@@ -38,14 +39,19 @@ class CoolQHttpApiAdapter(Adapter):
 
         new_ctx['sender_id'] = str(ctx_msg.get('user_id', ''))
         new_ctx['sender_tid'] = new_ctx['sender_id']
-        json = self.session.get(self.api_url + '/get_stranger_info',
-                                params={'user_id': new_ctx['sender_id']}).json()
-        if json and json.get('data'):
-            new_ctx['sender_name'] = json['data']['nickname']
 
         if new_ctx['msg_type'] == 'group':
             new_ctx['group_id'] = str(ctx_msg.get('group_id', ''))
             new_ctx['group_tid'] = new_ctx['group_id']
+            json = self.session.get(self.api_url + '/get_group_member_info',
+                                    params={'group_id': new_ctx['group_id'] ,'user_id': new_ctx['sender_id']}).json()
+            if json and json.get('data'):
+                new_ctx['sender_name'] = json['data']['card']
+        else:
+            json = self.session.get(self.api_url + '/get_stranger_info',
+                                    params={'user_id': new_ctx['sender_id']}).json()
+            if json and json.get('data'):
+                new_ctx['sender_name'] = json['data']['nickname']
 
         if new_ctx['msg_type'] == 'discuss':
             new_ctx['discuss_id'] = str(ctx_msg.get('discuss_id', ''))
@@ -69,7 +75,7 @@ class CoolQHttpApiAdapter(Adapter):
     def get_sender_group_role(self, ctx_msg: dict):
         json = self.session.get(
             self.api_url + '/get_group_member_info',
-            params={'group_id': ctx_msg.get('group_id'), 'user_id': ctx_msg.get('sender_id')}
+            params={'group_id': ctx_msg.get('group_id'), 'user_id': ctx_msg.get('sender_id'),'no_cache':True}
         ).json()
         if json and json.get('data'):
             return json['data']['role']

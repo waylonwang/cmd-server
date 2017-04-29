@@ -1,52 +1,14 @@
-import os
-import sqlite3
-
 from command import CommandRegistry, CommandScopeError, split_arguments
 from commands import core
-from little_shit import get_db_dir, get_target
+from commands.db import _open_db_conn
+from little_shit import get_target,get_source
+from interactive import *
 
 __registry__ = cr = CommandRegistry()
 
 __target_prefix = {'group': 'group_id', 'discuss': 'discuss_id', 'private': 'sender_id'}
 
-
-def _open_db_conn():
-    conn = sqlite3.connect(os.path.join(get_db_dir(), 'score.sqlite'))
-    conn.execute("""CREATE TABLE IF NOT EXISTS allowed_target_list (
-        target TEXT NOT NULL
-        )""")
-    conn.execute("""CREATE TABLE IF NOT EXISTS blocked_target_list (
-        target TEXT NOT NULL
-        )""")
-    conn.execute("""INSERT INTO allowed_target_list (target) 
-        SELECT 'g#*' WHERE NOT EXISTS (
-            SELECT 1 FROM allowed_target_list WHERE target LIKE 'g#%'
-            )""")
-    conn.execute("""INSERT INTO allowed_target_list (target) 
-        SELECT 'd#*' WHERE NOT EXISTS (
-            SELECT 1 FROM allowed_target_list WHERE target LIKE 'd#%'
-            )""")
-    conn.execute("""INSERT INTO allowed_target_list (target) 
-        SELECT 'p#*' WHERE NOT EXISTS (
-            SELECT 1 FROM allowed_target_list WHERE target LIKE 'p#%'
-            )""")
-    conn.execute("""CREATE TABLE IF NOT EXISTS exchange_group_list (
-        direction TEXT NOT NULL,
-        orig TEXT NOT NULL,
-        dest TEXT NOT NULL
-        )""")
-    conn.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_exchange_all ON exchange_group_list(direction,orig,dest)""")
-    conn.execute("""CREATE TABLE IF NOT EXISTS sys_params (
-        param_name TEXT PRIMARY KEY NOT NULL,
-        param_value TEXT NOT NULL
-        )""")
-    conn.execute("""INSERT INTO sys_params (param_name,param_value) 
-        SELECT 'baseline','6' WHERE NOT EXISTS (
-            SELECT 1 FROM sys_params WHERE param_name = 'baseline'
-            )""")
-    conn.commit()
-    return conn
-
+_cmd_help = 'admin.help'
 
 @cr.register('test')
 @cr.restrict(full_command_only=True, superuser_only=True)
@@ -56,35 +18,75 @@ def test(_, ctx_msg):
 
 @cr.register('help')
 @cr.restrict(full_command_only=True, superuser_only=True)
-def help(_, ctx_msg):
+def help(args_text, ctx_msg,allow_interactive=True):
     _check_admin_group(ctx_msg)
 
-    core.echo(
-        '你好，超级管理员！\n'
-        '(1)设置白名单：admin.allow \ngroup|discuss|private,<account-to-block>\n'
-        '(2)设置黑名单：admin.block \ngroup|discuss|private,<account-to-block>\n'
-        '(3)取消白名单：admin.unallow \ngroup|discuss|private,<account-to-block>\n'
-        '(4)取消黑名单：admin.unblock \ngroup|discuss|private,<account-to-block>\n'
-        '(5)查询白名单：admin.allow_list\n'
-        '(6)查询黑名单：admin.block_list',
-        ctx_msg
-    )
-    core.echo(
-        '(7)设置交换名单：admin.exchange \nin|out,<account-orig>,<account-dest>\n'
-        '(8)取消交换名单：admin.unexchange \nin|out,<account-orig>,<account-dest>\n'
-        '(9)查询交换名单：admin.exchange_list\n'
-        '(10)设置系统参数：admin.set_param \n<name>,<value>\n'
-        '(11)查询系统参数：admin.get_param \n<name>',
-        ctx_msg
-    )
-    core.echo(
-        '(12)查询群成员发言数：speak.query_today \n<nick|qq>,<group_id>\n'
-        '(13)查询群发言总数：speak.total_today \n<group_id>\n'
-        '(14)查询群发言Top X：speak.top_today \n<group_id>,<count>\n'
-        '(15)查询群有效发言Top X：speak.vaildtop_today \n<group_id>,<count>',
-        ctx_msg
-    )
+    source = get_source(ctx_msg)
+    if allow_interactive and (not args_text or has_session(source, _cmd_help)):
+        # Be interactive
+        return _help_interactively(args_text, ctx_msg, source)
 
+    if args_text== '1':
+        core.echo(
+            '(1)设置系统参数：admin.set_param \n<name>,<value>\n'
+            '(2)查询系统参数：admin.get_param \n<name>'
+            , ctx_msg
+        )
+    elif args_text == '2':
+        core.echo(
+            '(1)设置白名单：admin.allow \ngroup|discuss|private,<account-to-block>\n'
+            '(2)设置黑名单：admin.block \ngroup|discuss|private,<account-to-block>\n'
+            '(3)取消白名单：admin.unallow \ngroup|discuss|private,<account-to-block>\n'
+            '(4)取消黑名单：admin.unblock \ngroup|discuss|private,<account-to-block>\n'
+            '(5)查询白名单：admin.allow_list\n'
+            '(6)查询黑名单：admin.block_list'
+            # '(7)设置交换名单：admin.exchange \nin|out,<account-orig>,<account-dest>\n'
+            # '(8)取消交换名单：admin.unexchange \nin|out,<account-orig>,<account-dest>\n'
+            # '(9)查询交换名单：admin.exchange_list\n'
+            , ctx_msg
+        )
+    elif args_text == '3':
+        core.echo(
+            '(1)查询群成员发言数：speak.query_today \n<nick|qq>,<group_id>\n'
+            '(2)查询群发言总数：speak.total_today \n<group_id>\n'
+            '(3)查询群发言Top X：speak.top_today \n<group_id>,<count>\n'
+            '(4)查询群有效发言Top X：speak.vaildtop_today \n<group_id>,<count>\n'
+            '(5)设置发言清洗规则：speak.wash \n<rule-for-wash>,<replace-to-wash>\n'
+            '(6)取消发言清洗规则：speak.unwash \n<rule-for-wash>,<replace-to-wash>\n'
+            '(7)查询发言清洗规则：speak.wash_list'
+            , ctx_msg
+        )
+    else:
+        core.echo(
+            '不支持此指令参数，请重新发起命令'
+            , ctx_msg
+        )
+
+_state_machines = {}
+
+def _help_interactively(args_text, ctx_msg, source):
+    def wait_for_type(s, a, c):
+        core.echo('你好，超级管理员！请输入你要查找的命令类型：\n'
+                  '[1]:基础系统命令\n'
+                  '[2]:拦截放行命令\n'
+                  '[3]:发言管理命令'
+                  , c)
+        s.state += 1
+
+    def show_guide(s, a, c):
+        help(a, c, allow_interactive=False)
+        return True
+
+    if _cmd_help not in _state_machines:
+        _state_machines[_cmd_help] = (
+            wait_for_type,  # 0
+            show_guide  # 1
+        )
+
+    sess = get_session(source, _cmd_help)
+    if _state_machines[_cmd_help][sess.state](sess, args_text, ctx_msg):
+        # Done
+        remove_session(source, _cmd_help)
 
 @cr.register('block')
 @cr.restrict(full_command_only=True, superuser_only=True)
@@ -395,3 +397,4 @@ def _check_admin_group(ctx_msg):
         if _read_param(ctx_msg, 'admin_group') != ctx_msg.get('group_id', ''):
             # core.echo('此命令只能在管理组中使用', ctx_msg)
             raise CommandScopeError('非管理组')
+

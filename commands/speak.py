@@ -1,59 +1,17 @@
-import os
-import sqlite3
 from datetime import datetime
-from commands.admin import _exchange_ctx_msg,_check_admin_group
 
+import re
 import pytz
 
 from command import CommandRegistry, split_arguments
 from commands import core
-from config import config
-from interactive import *
-from little_shit import get_db_dir, get_source, get_target, check_target
+from commands.admin import _check_admin_group
+from commands.db import _open_db_conn
+from little_shit import get_target, check_target
 
 __registry__ = cr = CommandRegistry()
 __target_prefix = {'group': 'group_id','discuss': 'discuss_id','private': 'sender_id'}
 
-def _open_db_conn():
-    conn = sqlite3.connect(os.path.join(get_db_dir(), 'score.sqlite'))
-    conn.execute("""CREATE TABLE IF NOT EXISTS speak (
-        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        target TEXT NOT NULL,
-        sender_id TEXT NOT NULL,
-        sender_name TEXT NOT NULL,
-        date TEXT NOT NULL,
-        time TEXT NOT NULL,
-        timemark INTEGER NOT NULL,
-        message TEXT NOT NULL,
-        charcount NOT NULL
-        )""")
-    conn.execute("""CREATE INDEX IF NOT EXISTS idx_speak_sender ON speak(sender_id)""")
-    conn.execute("""CREATE INDEX IF NOT EXISTS idx_speak_date ON speak(date)""")
-    conn.execute("""CREATE INDEX IF NOT EXISTS idx_speak_charcount ON speak(charcount)""")
-    conn.execute("""CREATE TABLE IF NOT EXISTS speak_count (
-        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        target TEXT NOT NULL,
-        sender_id TEXT NOT NULL,
-        sender_name TEXT NOT NULL,
-        date TEXT NOT NULL,
-        fullcount INTEGER NOT NULL,
-        rulecount INTEGER NOT NULL
-        )""")
-    conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_sender ON speak_count(sender_id)""")
-    conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_date ON speak_count(date)""")
-    conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_fullcount ON speak_count(fullcount)""")
-    conn.execute("""CREATE INDEX IF NOT EXISTS idx_speakcount_rulecount ON speak_count(rulecount)""")
-    # conn.execute("""CREATE TABLE IF NOT EXISTS sys_params (
-    #     pkey TEXT PRIMARY KEY NOT NULL,
-    #     pvalue TEXT NOT NULL
-    #     )""")
-    # conn.execute("""INSERT INTO sys_params (pkey,pvalue)
-    #     SELECT 'baseline','6' WHERE NOT EXISTS (
-    #         SELECT 1 FROM sys_params WHERE pkey = 'baseline'
-    #         )""")
-    # conn.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_sys_params ON sys_params(target,key)""")
-    conn.commit()
-    return conn
 
 @check_target
 def speak_record(_, ctx_msg):
@@ -64,13 +22,15 @@ def speak_record(_, ctx_msg):
     sender_id = ctx_msg.get('sender_id')
     sender_name = ctx_msg.get('sender_name')
     message = ctx_msg.get('content')
-    cnt = len(ctx_msg.get('text'))
+    text = message
+    text = do_wash(text,wash_list('',ctx_msg,internal=True))
+    cnt = len(text)
     if not target:
         return
     try:
         conn = _open_db_conn()
-        conn.execute('INSERT INTO speak (target,sender_id,sender_name,date,time,timemark,message,charcount) VALUES (?,?,?,?,?,?,?,?)',
-                     (target,sender_id,sender_name,date,time_text,timemark_unix,message,cnt))
+        conn.execute('INSERT INTO speak (target,sender_id,sender_name,date,time,timemark,message,text,charcount) VALUES (?,?,?,?,?,?,?,?,?)',
+                     (target,sender_id,sender_name,date,time_text,timemark_unix,message,text,cnt))
         conn.commit()
     finally:
         conn.close()
@@ -88,6 +48,73 @@ def speak_query(_,ctx_msg, argv=None):
     result=_query(ctx_msg,user=user)
     core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] ' + utext + '今天共发言:' + str(result[0])
       + ',有效发言:' + str(result[1]), ctx_msg)
+
+def do_wash(text,washlist):
+    for wash in washlist:
+        w = wash.split(' , ')
+        p = re.compile(r'' + w[0])
+        text = p.sub(r'' + w[1],text)
+    return text
+
+@cr.register('wash')
+@cr.restrict(full_command_only=True, superuser_only=True)
+@split_arguments(maxsplit=2)
+def wash(_, ctx_msg, argv=None):
+    _check_admin_group(ctx_msg)
+
+    def _send_error_msg():
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.wash <rule-for-wash>,<replace-to-wash>', ctx_msg)
+
+    if len(argv) != 2:
+        _send_error_msg()
+        return
+
+    rule = argv[0]
+    replace = argv[1]
+    conn = _open_db_conn()
+    conn.execute('INSERT INTO speak_wash (rule,replace) VALUES (?,?)', (rule,replace))
+    conn.commit()
+    conn.close()
+    core.echo('成功添加清洗规则 ' + rule + ' -> ' + replace, ctx_msg)
+
+
+@cr.register('wash_list', 'wash-list')
+@cr.restrict(full_command_only=True, superuser_only=True)
+def wash_list(_, ctx_msg, internal=False):
+    if not internal:
+        _check_admin_group(ctx_msg)
+    conn = _open_db_conn()
+    cursor = conn.execute('SELECT rule,replace FROM speak_wash')
+    result = list(set([x[0] + ' , ' + x[1] for x in list(cursor)]))  # Get targets and remove duplications
+    conn.close()
+    if internal:
+        return result
+    if result:
+        core.echo('已有清洗规则：\n' + '\n'.join(result), ctx_msg)
+    else:
+        core.echo('尚未有清洗规则设置', ctx_msg)
+
+
+@cr.register('unwash')
+@cr.restrict(full_command_only=True, superuser_only=True)
+@split_arguments(maxsplit=2)
+def unwash(_, ctx_msg, argv=None):
+    _check_admin_group(ctx_msg)
+
+    def _send_error_msg():
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.unwash <rule-for-wash>,<replace-to-wash>', ctx_msg)
+
+    if len(argv) != 2:
+        _send_error_msg()
+        return
+
+    rule = argv[0]
+    replace = argv[1]
+    conn = _open_db_conn()
+    conn.execute('DELETE FROM speak_wash WHERE rule = ? and replace=?', (rule,replace))
+    conn.commit()
+    conn.close()
+    core.echo('成功取消清洗规则 ' + rule + ' -> ' + replace, ctx_msg)
 
 @cr.register('query_today', 'query-today')
 @cr.restrict(full_command_only=True, superuser_only=True)

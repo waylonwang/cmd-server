@@ -69,6 +69,9 @@ def _dispatch_command(ctx_msg):
             ctx_msg['command'] = command[0]
             ctx_msg['is_fallback'] = True
             cmdhub.call(command[0], command[1], ctx_msg)
+        elif ctx_msg['start_flag'] == '' :
+            # Empty command start flag is allowed
+            pass
         else:
             # core.echo('暂时还没有这个命令哦～', ctx_msg)
             print('暂时还没有这个命令:'+ ctx_msg['start_flag'] + ':' + ctx_msg['command'])
