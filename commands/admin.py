@@ -360,6 +360,7 @@ def set_param(_, ctx_msg, argv=None):
 
 @cr.register('get_param', 'get-param')
 @cr.restrict(full_command_only=True, superuser_only=True)
+@split_arguments(maxsplit=1)
 def get_param(_, ctx_msg, argv=None):
     _check_admin_group(ctx_msg)
 
@@ -371,7 +372,7 @@ def get_param(_, ctx_msg, argv=None):
         return
     result = _read_param(ctx_msg, argv[0])
     if result:
-        core.echo('系统参数' + argv + ':' + ','.join(result), ctx_msg)
+        core.echo('系统参数' + argv[0] + ':' + ','.join(result), ctx_msg)
     else:
         core.echo('尚未有设置该系统参数', ctx_msg)
 
