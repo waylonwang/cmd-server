@@ -1,4 +1,5 @@
 import requests
+import re
 from flask import request as flask_req
 
 from msg_src_adapter import Adapter, as_adapter, ConfigurationError
@@ -92,14 +93,50 @@ class CoolQHttpApiAdapter(Adapter):
             self.session.get(self.api_url + '/send_private_msg', params=params)
 
     def send_group_message(self, target: dict, content: str):
+        def repl_args(matched):
+            def repl_value(matched):
+                pre = ''
+                value = ''
+                if matched.group("pre") != None:
+                    pre = matched.group("pre")
+                if matched.group("value") != None:
+                    value = matched.group("value").replace('&','&amp;').replace('[','&#91;').replace(']','&#93;').replace(',','&#44;')
+                return pre + value
+            pre = ''
+            args = ''
+            post = ''
+            if matched.group("pre") != None:
+                pre = matched.group("pre")
+            if matched.group("args") != None:
+                args = matched.group("args")
+                args = re.sub(r'(?P<pre>=)(?P<value>[^,]*)', repl_value, args)
+            if matched.group("post") != None:
+                post = matched.group("post")
+            return pre + args + post
+
+        def repl_text(matched):
+            text = ''
+            post = ''
+            if matched.group("text") != None:
+                text = matched.group("text")
+                text = text.replace('&', '&amp;').replace('[', '&#91;').replace(']', '&#93;')
+            if matched.group("post") != None:
+                post = matched.group("post")
+            return text + post
+
         params = None
         if target.get('group_id'):
             params = {'group_id': target.get('group_id')}
-
         if params:
+            # 参数中转义的字符的处理
+            content = re.sub(r'(?P<pre>\[CQ:[^,]*,)(?P<args>[^\]]+)(?P<post>\])', repl_args, content)
+            # 正文中转义的字符的处理
+            content = re.sub(r'(?P<text>[^\[]*(?:\[(?!CQ:))*)(?P<post>(?:\[CQ:[^\]]*\])*)', repl_text, content)
+
             params['message'] = content
             params['is_raw'] = True
             self.session.get(self.api_url + '/send_group_msg', params=params)
+
 
     def send_discuss_message(self, target: dict, content: str):
         params = None

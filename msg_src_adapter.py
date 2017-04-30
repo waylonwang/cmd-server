@@ -27,8 +27,6 @@ class Adapter(object):
     def send_message(self, target: dict, content):
         if target is None or content is None:
             return
-        content = content.replace('&','&amp;').replace('[','&#91;').replace(']','&#93;')
-            # TODO 在【CQ】中实现 .replace(',','&#44;')
         msg_type = target.get('msg_type', 'private')
         if msg_type == 'group' and hasattr(self, 'send_group_message'):
             self.send_group_message(target, content)
