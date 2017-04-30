@@ -47,13 +47,18 @@ def help(args_text, ctx_msg,allow_interactive=True):
         )
     elif args_text == '3':
         core.echo(
+            '(1)设置发言清洗规则：speak.wash \n<rule-for-wash>,<replace-to-wash>\n'
+            '(2)取消发言清洗规则：speak.unwash \n<rule-for-wash>,<replace-to-wash>\n'
+            '(3)查询发言清洗规则：speak.wash_list'
+            , ctx_msg
+        )
+    elif args_text == '4':
+        core.echo(
             '(1)查询群成员发言数：speak.query \n<nick|qq>,<group_id>,<YYYY-MM-DD>\n'
             '(2)查询群发言总数：speak.total \n<group_id>,<YYYY-MM-DD>\n'
             '(3)查询群发言Top X：speak.top \n<group_id>,<count>,<YYYY-MM-DD>\n'
             '(4)查询群有效发言Top X：speak.vaildtop \n<group_id>,<count>,<YYYY-MM-DD>\n'
-            '(5)设置发言清洗规则：speak.wash \n<rule-for-wash>,<replace-to-wash>\n'
-            '(6)取消发言清洗规则：speak.unwash \n<rule-for-wash>,<replace-to-wash>\n'
-            '(7)查询发言清洗规则：speak.wash_list'
+            '(5)更新群有效发言数据：speak.updatewash <group_id>,<YYYY-MM-DD>\n'
             , ctx_msg
         )
     else:
@@ -69,7 +74,8 @@ def _help_interactively(args_text, ctx_msg, source):
         core.echo('你好，超级管理员！请输入你要查找的命令类型：\n'
                   '[1]:基础系统命令\n'
                   '[2]:拦截放行命令\n'
-                  '[3]:发言管理命令'
+                  '[3]:发言设置命令'
+                  '[4]:发言管理命令'
                   , c)
         s.state += 1
 

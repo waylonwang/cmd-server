@@ -120,6 +120,46 @@ def unwash(_, ctx_msg, argv=None):
     conn.close()
     core.echo('成功取消清洗规则 ' + rule + ' -> ' + replace, ctx_msg)
 
+@cr.register('updatewash')
+@cr.restrict(full_command_only=True, superuser_only=True)
+@split_arguments(maxsplit=2)
+def updatewash(_, ctx_msg, argv=None):
+    _check_admin_group(ctx_msg)
+
+    def _send_error_msg():
+        core.echo('参数不正确。\n\n正确使用方法：\nspeak.updatewash <group_id>,<YYYY-MM-DD>', ctx_msg)
+
+    if len(argv) != 2:
+        _send_error_msg()
+        return
+
+    group = argv[0]
+    date = argv[1]
+    new_ctx = ctx_msg.copy()
+    new_ctx['group_id'] = group
+    new_ctx['group_tid'] = group
+    group = get_target(new_ctx)
+    washlist=wash_list('', ctx_msg, internal=True)
+
+    core.echo('即将开始更新' + date + '[' + argv[0] + ']' + '的发言数据，耗时可能较长，请耐心等候！', ctx_msg)
+    conn = _open_db_conn()
+    cursor = conn.execute('SELECT id,message FROM speak WHERE target = ? and date=?', (group, date))
+    values = cursor.fetchall()
+    total = len(values)
+    print('共'+str(total))
+    i=0
+    for x in values:
+        i= i+1
+        print('当前'+str(i))
+        id = x[0]
+        message = x[1]
+        text = _do_wash(message, washlist)
+        cnt = len(text)
+        conn.execute('UPDATE speak SET text = ?,charcount = ? WHERE id = ?', (text, cnt, id))
+        conn.commit()
+    conn.close()
+    core.echo('成功更新'+ date + '[' + argv[0] + ']' + '有效发言数据', ctx_msg)
+
 
 @cr.register('query', 'query')
 @cr.restrict(full_command_only=True, superuser_only=True)
