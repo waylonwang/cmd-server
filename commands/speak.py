@@ -275,7 +275,7 @@ def top(_, ctx_msg, argv=None):
     new_ctx['group_id'] = group
     new_ctx['group_tid'] = group
     group = get_target(new_ctx)
-
+    # TODO 排除sender_name，避免改名后数量不能合并计算，sender_name改为从缓存中取最新的显示
     conn = _open_db_conn()
     cursor = conn.execute("SELECT sender_id,sender_name,COUNT(1) AS cnt "
                           "FROM speak WHERE target=? AND date=? "
