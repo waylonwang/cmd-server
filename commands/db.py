@@ -2,6 +2,10 @@ import os
 import sqlite3
 
 from little_shit import get_db_dir
+from command import CommandRegistry, split_arguments
+
+__registry__ = cr = CommandRegistry()
+__target_prefix = {'group': 'group_id', 'discuss': 'discuss_id', 'private': 'sender_id'}
 
 def _open_db_conn():
     conn = sqlite3.connect(os.path.join(get_db_dir(), 'score.sqlite'))

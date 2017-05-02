@@ -1,6 +1,6 @@
 from command import CommandRegistry
 from msg_src_adapter import get_adapter_by_ctx
-from commands.admin import _exchange_ctx_msg
+# from commands.admin import _exchange_ctx_msg
 
 __registry__ = cr = CommandRegistry()
 
@@ -10,7 +10,7 @@ def echo(args_text, ctx_msg, internal=False):
     if internal:
         return None
     else:
-        ctx_msg = _exchange_ctx_msg(ctx_msg, 'out')
+        # ctx_msg = _exchange_ctx_msg(ctx_msg, 'out')
         return get_adapter_by_ctx(ctx_msg).send_message(
             target=ctx_msg,
             content=args_text

@@ -37,7 +37,7 @@ def speak_record(_, ctx_msg):
         conn.close()
 
 
-@cr.register('查询发言')
+@cr.register('查询.发言')
 @split_arguments(maxsplit=1)
 @check_target
 def speak_query(_, ctx_msg, argv=None):

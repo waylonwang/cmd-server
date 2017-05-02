@@ -261,87 +261,87 @@ def unallow(_, ctx_msg, argv=None):
     core.echo('成功取消允许 ' + type + ':' + account, ctx_msg)
 
 
-@cr.register('exchange')
-@cr.restrict(full_command_only=True, superuser_only=True)
-@split_arguments(maxsplit=3)
-def exchange(_, ctx_msg, argv=None):
-    _check_admin_group(ctx_msg)
+# @cr.register('exchange')
+# @cr.restrict(full_command_only=True, superuser_only=True)
+# @split_arguments(maxsplit=3)
+# def exchange(_, ctx_msg, argv=None):
+#     _check_admin_group(ctx_msg)
+#
+#     def _send_error_msg():
+#         core.echo('参数不正确。\n\n正确使用方法：\nadmin.exchange in|out,<account-orig>,<account-dest>', ctx_msg)
+#
+#     if len(argv) != 3:
+#         _send_error_msg()
+#         return
+#
+#     direction = argv[0]
+#     orig = argv[1]
+#     dest = argv[2]
+#
+#     conn = _open_db_conn()
+#     conn.execute('INSERT OR IGNORE INTO exchange_group_list (direction,orig,dest) VALUES (?,?,?)',
+#                  (direction, orig, dest))
+#     conn.commit()
+#     conn.close()
+#     core.echo('成功交换 ' + direction + ':from ' + orig + ' to ' + dest, ctx_msg)
+#
 
-    def _send_error_msg():
-        core.echo('参数不正确。\n\n正确使用方法：\nadmin.exchange in|out,<account-orig>,<account-dest>', ctx_msg)
-
-    if len(argv) != 3:
-        _send_error_msg()
-        return
-
-    direction = argv[0]
-    orig = argv[1]
-    dest = argv[2]
-
-    conn = _open_db_conn()
-    conn.execute('INSERT OR IGNORE INTO exchange_group_list (direction,orig,dest) VALUES (?,?,?)',
-                 (direction, orig, dest))
-    conn.commit()
-    conn.close()
-    core.echo('成功交换 ' + direction + ':from ' + orig + ' to ' + dest, ctx_msg)
-
-
-@cr.register('exchange_list', 'exchange-list')
-@cr.restrict(full_command_only=True, superuser_only=True)
-def exchange_list(_, ctx_msg, internal=False):
-    if not internal:
-        _check_admin_group(ctx_msg)
-    conn = _open_db_conn()
-    cursor = conn.execute('SELECT direction,orig,dest FROM exchange_group_list')
-    exchange_list = list(
-        set([x[0] + ':' + x[1] + '->' + x[2] for x in list(cursor)]))  # Get targets and remove duplications
-    conn.close()
-    if internal:
-        return exchange_list
-    if exchange_list:
-        core.echo('已交换：\n' + ', '.join(exchange_list), ctx_msg)
-    else:
-        core.echo('尚未有交换设置', ctx_msg)
-
-
-@cr.register('unexchange')
-@cr.restrict(full_command_only=True, superuser_only=True)
-@split_arguments(maxsplit=3)
-def unexchange(_, ctx_msg, argv=None):
-    _check_admin_group(ctx_msg)
-
-    def _send_error_msg():
-        core.echo('参数不正确。\n\n正确使用方法：\nadmin.unexchange in|out,<account-orig>,<account-dest>', ctx_msg)
-
-    if len(argv) != 3:
-        _send_error_msg()
-        return
-
-    direction = argv[0]
-    orig = argv[1]
-    dest = argv[2]
-
-    conn = _open_db_conn()
-    conn.execute('DELETE FROM exchange_group_list WHERE direction = ? and orig=? and dest=?', (direction, orig, dest))
-    conn.commit()
-    conn.close()
-    core.echo('成功取消交换 ' + direction + ':from ' + orig + ' to ' + dest, ctx_msg)
-
-
-def _exchange_ctx_msg(ctx_msg, direction):
-    orig = ctx_msg.get('group_id', '')
-    conn = _open_db_conn()
-    cursor = conn.execute('SELECT dest FROM exchange_group_list where direction=? and orig=?', (direction, orig))
-    if cursor.rowcount > 0:
-        dest = cursor.fetchone()[0]
-    else:
-        dest = None
-    conn.close()
-    if dest != None:
-        ctx_msg['group_id'] = dest
-        ctx_msg['group_tid'] = dest
-        ctx_msg['raw_ctx']['group_id'] = dest
-    return ctx_msg
+# @cr.register('exchange_list', 'exchange-list')
+# @cr.restrict(full_command_only=True, superuser_only=True)
+# def exchange_list(_, ctx_msg, internal=False):
+#     if not internal:
+#         _check_admin_group(ctx_msg)
+#     conn = _open_db_conn()
+#     cursor = conn.execute('SELECT direction,orig,dest FROM exchange_group_list')
+#     exchange_list = list(
+#         set([x[0] + ':' + x[1] + '->' + x[2] for x in list(cursor)]))  # Get targets and remove duplications
+#     conn.close()
+#     if internal:
+#         return exchange_list
+#     if exchange_list:
+#         core.echo('已交换：\n' + ', '.join(exchange_list), ctx_msg)
+#     else:
+#         core.echo('尚未有交换设置', ctx_msg)
+#
+#
+# @cr.register('unexchange')
+# @cr.restrict(full_command_only=True, superuser_only=True)
+# @split_arguments(maxsplit=3)
+# def unexchange(_, ctx_msg, argv=None):
+#     _check_admin_group(ctx_msg)
+#
+#     def _send_error_msg():
+#         core.echo('参数不正确。\n\n正确使用方法：\nadmin.unexchange in|out,<account-orig>,<account-dest>', ctx_msg)
+#
+#     if len(argv) != 3:
+#         _send_error_msg()
+#         return
+#
+#     direction = argv[0]
+#     orig = argv[1]
+#     dest = argv[2]
+#
+#     conn = _open_db_conn()
+#     conn.execute('DELETE FROM exchange_group_list WHERE direction = ? and orig=? and dest=?', (direction, orig, dest))
+#     conn.commit()
+#     conn.close()
+#     core.echo('成功取消交换 ' + direction + ':from ' + orig + ' to ' + dest, ctx_msg)
+#
+#
+# def _exchange_ctx_msg(ctx_msg, direction):
+#     orig = ctx_msg.get('group_id', '')
+#     conn = _open_db_conn()
+#     cursor = conn.execute('SELECT dest FROM exchange_group_list where direction=? and orig=?', (direction, orig))
+#     if cursor.rowcount > 0:
+#         dest = cursor.fetchone()[0]
+#     else:
+#         dest = None
+#     conn.close()
+#     if dest != None:
+#         ctx_msg['group_id'] = dest
+#         ctx_msg['group_tid'] = dest
+#         ctx_msg['raw_ctx']['group_id'] = dest
+#     return ctx_msg
 
 
 @cr.register('set_param', 'set-param')
