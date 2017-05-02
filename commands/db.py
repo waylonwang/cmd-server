@@ -7,7 +7,7 @@ def _open_db_conn():
     conn = sqlite3.connect(os.path.join(get_db_dir(), 'score.sqlite'))
     __create_table(conn)
     __create_index(conn)
-    __init_data(conn)
+    # __init_data(conn)
     conn.commit()
     return conn
 
@@ -42,11 +42,12 @@ def __create_table(conn):
     conn.execute("""CREATE TABLE IF NOT EXISTS blocked_target_list (
         target TEXT NOT NULL
         )""")
-    conn.execute("""CREATE TABLE IF NOT EXISTS exchange_group_list (
-        direction TEXT NOT NULL,
-        orig TEXT NOT NULL,
-        dest TEXT NOT NULL
-        )""")
+    # conn.execute("""CREATE TABLE IF NOT EXISTS exchange_group_list (
+    #     direction TEXT NOT NULL,
+    #     orig TEXT NOT NULL,
+    #     dest TEXT NOT NULL
+    #     )""") exchange作用已经不大，去除exchange
+
     # speak table
     conn.execute("""CREATE TABLE IF NOT EXISTS speak (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -76,7 +77,7 @@ def __create_table(conn):
         )""")
 
 def __create_index(conn):
-    conn.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_exchange_all ON exchange_group_list(direction,orig,dest)""")
+    # conn.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_exchange_all ON exchange_group_list(direction,orig,dest)""")   exchange作用已经不大，去除exchange
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speak_sender ON speak(sender_id)""")
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speak_date ON speak(date)""")
     conn.execute("""CREATE INDEX IF NOT EXISTS idx_speak_charcount ON speak(charcount)""")

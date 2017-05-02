@@ -2,13 +2,11 @@
 This filter intercepts messages from blocked targets (blocked using sudo.block command).
 """
 
-from commands.admin import _exchange_ctx_msg
 from filter import as_filter
-from little_shit import get_target
 
 
 @as_filter(priority=600)
 def _filter(ctx_msg):
-    # ctx_msg=exchange_ctx_msg(ctx_msg,'in')
+    # ctx_msg=exchange_ctx_msg(ctx_msg,'in') exchange作用已经不大，去除exchange
     return True
 
