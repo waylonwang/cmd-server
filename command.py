@@ -31,6 +31,8 @@ class CommandRegistry:
         self.command_map = {}
         self.alias_map = {}
         self.hidden_command_names = []
+        self.model_map = {}
+        self.view_map = {}
 
     def register(self, command_name, *other_names, hidden=False):
         """
@@ -204,6 +206,30 @@ class CommandRegistry:
         :return: has or not
         """
         return command_name in self.command_map
+
+    def model(self, model_name):
+        def decorator(func):
+            self.model_map[model_name] = func
+
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return wrapper
+
+        return decorator
+
+    def view(self, viewer_name):
+        def decorator(func):
+            self.view_map[viewer_name] = func
+
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return wrapper
+
+        return decorator
 
 
 class CommandHub:

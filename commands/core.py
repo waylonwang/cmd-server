@@ -1,6 +1,5 @@
 from command import CommandRegistry
 from msg_src_adapter import get_adapter_by_ctx
-# from commands.admin import _exchange_ctx_msg
 
 __registry__ = cr = CommandRegistry()
 
@@ -10,12 +9,10 @@ def echo(args_text, ctx_msg, internal=False):
     if internal:
         return None
     else:
-        # ctx_msg = _exchange_ctx_msg(ctx_msg, 'out')
         return get_adapter_by_ctx(ctx_msg).send_message(
             target=ctx_msg,
             content=args_text
         )
-
 
 # @cr.register('help', '帮助', '用法', '使用帮助', '使用指南', '使用说明', '使用方法', '怎么用')
 # def help(_, ctx_msg):
@@ -38,4 +35,3 @@ def echo(args_text, ctx_msg, internal=False):
 #         '祝你使用愉快～',
 #         ctx_msg
 #     )
-

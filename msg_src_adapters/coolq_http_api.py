@@ -1,5 +1,6 @@
-import requests
 import re
+
+import requests
 from flask import request as flask_req
 
 from msg_src_adapter import Adapter, as_adapter, ConfigurationError
@@ -30,7 +31,7 @@ class CoolQHttpApiAdapter(Adapter):
         new_ctx['time'] = ctx_msg['time']
         new_ctx['msg_type'] = ctx_msg['message_type']
         new_ctx['format'] = 'text'
-        new_ctx['content'] = ctx_msg['message'].replace('&amp;', '&').replace('&#91;', '[').replace('&#93;', ']')\
+        new_ctx['content'] = ctx_msg['message'].replace('&amp;', '&').replace('&#91;', '[').replace('&#93;', ']') \
             .replace('&#44;', ',')
 
         login_info = self.get_login_info()
@@ -45,7 +46,7 @@ class CoolQHttpApiAdapter(Adapter):
             new_ctx['group_id'] = str(ctx_msg.get('group_id', ''))
             new_ctx['group_tid'] = new_ctx['group_id']
             json = self.session.get(self.api_url + '/get_group_member_info',
-                                    params={'group_id': new_ctx['group_id'] ,'user_id': new_ctx['sender_id']}).json()
+                                    params={'group_id': new_ctx['group_id'], 'user_id': new_ctx['sender_id']}).json()
             if json and json.get('data'):
                 new_ctx['sender_name'] = json['data']['card']
         else:
@@ -76,7 +77,7 @@ class CoolQHttpApiAdapter(Adapter):
     def get_sender_group_role(self, ctx_msg: dict):
         json = self.session.get(
             self.api_url + '/get_group_member_info',
-            params={'group_id': ctx_msg.get('group_id'), 'user_id': ctx_msg.get('sender_id'),'no_cache':True}
+            params={'group_id': ctx_msg.get('group_id'), 'user_id': ctx_msg.get('sender_id'), 'no_cache': True}
         ).json()
         if json and json.get('data'):
             return json['data']['role']
@@ -100,8 +101,11 @@ class CoolQHttpApiAdapter(Adapter):
                 if matched.group("pre") != None:
                     pre = matched.group("pre")
                 if matched.group("value") != None:
-                    value = matched.group("value").replace('&','&amp;').replace('[','&#91;').replace(']','&#93;').replace(',','&#44;')
+                    value = matched.group("value").replace('&', '%26amp%3b').replace('[', '%26%2391%3b').replace(']',
+                                                                                                                 '%26%2393%3b').replace(
+                        ',', '%26%2344%3b')
                 return pre + value
+
             pre = ''
             args = ''
             post = ''
@@ -119,7 +123,7 @@ class CoolQHttpApiAdapter(Adapter):
             post = ''
             if matched.group("text") != None:
                 text = matched.group("text")
-                text = text.replace('&', '&amp;').replace('[', '&#91;').replace(']', '&#93;')
+                text = text.replace('&', '%26amp%3b').replace('[', '%26%2391%3b').replace(']', '%26%2393%3b')
             if matched.group("post") != None:
                 post = matched.group("post")
             return text + post
@@ -136,7 +140,6 @@ class CoolQHttpApiAdapter(Adapter):
             params['message'] = content
             params['is_raw'] = True
             self.session.get(self.api_url + '/send_group_msg', params=params)
-
 
     def send_discuss_message(self, target: dict, content: str):
         params = None

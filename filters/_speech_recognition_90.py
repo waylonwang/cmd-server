@@ -4,17 +4,17 @@ This filter recognizes speech in voice message and stores it in 'text' field of 
 NOTE! This filter is only for Mojo-Weixin platform.
 """
 
-import re
-import os
-import sys
 import base64
+import os
+import re
+import sys
 
 import requests
-from pydub import AudioSegment
 import speech_recognition as sr
+from pydub import AudioSegment
 
-from filter import as_filter
 from commands import core
+from filter import as_filter
 from little_shit import get_source
 
 

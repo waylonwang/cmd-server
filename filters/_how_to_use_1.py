@@ -1,7 +1,7 @@
 import re
 
-from filter import as_filter
 from commands import core
+from filter import as_filter
 
 
 @as_filter(priority=1)

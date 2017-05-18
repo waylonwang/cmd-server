@@ -1,5 +1,5 @@
-import os
 import json
+import os
 import sqlite3
 from datetime import datetime, timedelta
 
@@ -7,8 +7,8 @@ import requests
 
 from command import CommandRegistry, split_arguments
 from commands import core
-from little_shit import get_source, get_db_dir, get_tmp_dir
 from interactive import *
+from little_shit import get_source, get_db_dir, get_tmp_dir
 
 __registry__ = cr = CommandRegistry()
 

@@ -9,4 +9,3 @@ from filter import as_filter
 def _filter(ctx_msg):
     # ctx_msg=exchange_ctx_msg(ctx_msg,'in') exchange作用已经不大，去除exchange
     return True
-

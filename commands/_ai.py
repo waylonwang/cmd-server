@@ -1,4 +1,3 @@
-import os
 import requests
 
 from command import CommandRegistry
@@ -23,7 +22,7 @@ def tuling123(args_text, ctx_msg, internal=False):
         if internal:
             return json
         if int(json.get('code', 0)) == 100000:
-            reply = '[CQ:at,qq='+ ctx_msg.get('sender_id', '')+']' + json.get('text', '')
+            reply = '[CQ:at,qq=' + ctx_msg.get('sender_id', '') + ']' + json.get('text', '')
         else:
             # Is not text type
             reply = '腊鸡图灵机器人返回了一堆奇怪的东西，就不发出来了'

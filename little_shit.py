@@ -1,6 +1,6 @@
+import functools
 import importlib
 import os
-import functools
 
 from config import config
 

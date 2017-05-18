@@ -2,11 +2,11 @@ import re
 import sys
 
 import interactive
-from filter import as_filter
 from command import CommandNotExistsError, CommandScopeError, CommandPermissionError
-from little_shit import *
-from commands import core
 from command import hub as cmdhub
+from commands import core
+from filter import as_filter
+from little_shit import *
 
 _fallback_command = get_fallback_command()
 _command_start_flags = get_command_start_flags()
@@ -69,12 +69,12 @@ def _dispatch_command(ctx_msg):
             ctx_msg['command'] = command[0]
             ctx_msg['is_fallback'] = True
             cmdhub.call(command[0], command[1], ctx_msg)
-        elif ctx_msg['start_flag'] == '' :
+        elif ctx_msg['start_flag'] == '':
             # Empty command start flag is allowed
             pass
         else:
             # core.echo('暂时还没有这个命令哦～', ctx_msg)
-            print('暂时还没有这个命令:'+ ctx_msg['start_flag'] + ':' + ctx_msg['command'])
+            print('暂时还没有这个命令:' + ctx_msg['start_flag'] + ':' + ctx_msg['command'])
     except CommandPermissionError:
         core.echo('你没有权限使用这个命令哦～', ctx_msg)
     except CommandScopeError as se:

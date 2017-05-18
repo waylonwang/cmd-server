@@ -5,6 +5,8 @@ cachetools
 pytz
 flask
 sqlalchemy
+wtforms
+werkzeug
 pydub
 SpeechRecognition
 jieba

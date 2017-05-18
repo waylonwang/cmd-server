@@ -46,7 +46,7 @@ def subscribe(args_text, ctx_msg, argv=None, internal=False, allow_interactive=T
     command = data['command']
     job = scheduler.add_job(
         '-H %s -M %s --multi %s %s' % (
-        hour, minute, _scheduler_job_id_prefix + str(int(datetime.now().timestamp())), command),
+            hour, minute, _scheduler_job_id_prefix + str(int(datetime.now().timestamp())), command),
         ctx_msg, internal=True
     )
     if internal:

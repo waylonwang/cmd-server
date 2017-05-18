@@ -1,12 +1,18 @@
 import os
 
-from flask import Flask, request
+from flask import Flask, render_template, request
 
-from little_shit import SkipException, load_plugins
 from filter import apply_filters
+from little_shit import SkipException, load_plugins
 from msg_src_adapter import get_adapter
 
 app = Flask(__name__)
+
+
+# Flask views
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 
 @app.route('/<string:via>/<string:login_id>', methods=['POST'], strict_slashes=False)
@@ -14,6 +20,7 @@ def _handle_via_account(via: str, login_id: str):
     ctx_msg = request.json
     ctx_msg['via'] = via
     ctx_msg['login_id'] = login_id
+
     return _main(ctx_msg)
 
 

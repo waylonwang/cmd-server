@@ -1,8 +1,8 @@
 from command import CommandRegistry
-from commands import core
-from nl_processor import parse_potential_commands
-from little_shit import load_plugins, get_fallback_command_after_nl_processors
 from command import hub as cmdhub
+from commands import core
+from little_shit import load_plugins, get_fallback_command_after_nl_processors
+from nl_processor import parse_potential_commands
 
 
 def _init():

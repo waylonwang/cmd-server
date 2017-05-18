@@ -12,6 +12,7 @@ from little_shit import get_db_dir, get_source, get_target, check_target
 
 __registry__ = cr = CommandRegistry()
 
+
 def _open_db_conn():
     conn = sqlite3.connect(os.path.join(get_db_dir(), 'score.sqlite'))
     conn.execute("""CREATE TABLE IF NOT EXISTS speak_apply (
@@ -68,23 +69,23 @@ def speak_apply(args_text, ctx_msg):
     daily_limit = config.get('score_daily_speak_apply_limit')
     try:
         cursor = conn.execute('SELECT count(id) FROM speak_apply WHERE target=? and uid = ? and date = ?',
-                              (get_target(ctx_msg),ctx_msg.get('sender_id',''),date_text))
+                              (get_target(ctx_msg), ctx_msg.get('sender_id', ''), date_text))
         today_cnt = cursor.fetchone()[0]
-        if today_cnt == daily_limit - 1 :
-            core.echo('[CQ:at,qq='+ ctx_msg.get('sender_id')+'] 温馨提醒：你今天还剩一次统计发言的机会', ctx_msg)
-        elif today_cnt > daily_limit :
+        if today_cnt == daily_limit - 1:
+            core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] 温馨提醒：你今天还剩一次统计发言的机会', ctx_msg)
+        elif today_cnt > daily_limit:
             core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] 你今天可统计发言的次数已经用完', ctx_msg)
-    except :
+    except:
         pass
     finally:
         try:
-            if today_cnt <= daily_limit :
+            if today_cnt <= daily_limit:
                 conn.execute(
                     'INSERT INTO speak_apply (target, uid, date, time, hasrecord) VALUES (?, ?, ?, ?, 0)',
-                    (get_target(ctx_msg), ctx_msg.get('sender_id',''), date_text, time_unix)
+                    (get_target(ctx_msg), ctx_msg.get('sender_id', ''), date_text, time_unix)
                 )
                 conn.commit()
-                core.echo('查询发言 @'+ ctx_msg.get('sender_name',''), ctx_msg)
+                core.echo('查询发言 @' + ctx_msg.get('sender_name', ''), ctx_msg)
         except:
             core.echo('[CQ:at,qq=' + ctx_msg.get('sender_id') + '] 对不起，程序出错了，暂时无法统计发言，请稍后再试！', ctx_msg)
         finally:
@@ -154,6 +155,7 @@ def code_confirm(_, ctx_msg):
 
 
 _state_machines = {}
+
 
 # 统计每天发言
 # 统计每周报点
