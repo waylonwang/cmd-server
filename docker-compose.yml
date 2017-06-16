@@ -11,7 +11,7 @@ services:
     environment:
       - TURING123_API_KEY=YOUR_API_KEY
       - HOST=0.0.0.0
-      - PORT=8888
+      - PORT=5600
       - BAIDU_FANYI_APP_ID=YOUR_APP_ID
       - BAIDU_FANYI_API_KEY=YOUR_API_KEY
       - SPEECH_RECOGNITION_SERVICE=baidu|bing

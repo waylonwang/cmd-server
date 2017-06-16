@@ -42,4 +42,4 @@ def _main(ctx_msg: dict):
 if __name__ == '__main__':
     load_plugins('msg_src_adapters')
     load_plugins('filters')
-    app.run(host=os.environ.get('HOST', '0.0.0.0'), port=os.environ.get('PORT', '8080'))
+    app.run(host=os.environ.get('HOST', '0.0.0.0'), port=os.environ.get('PORT', '5600'))
