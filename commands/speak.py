@@ -8,7 +8,7 @@ from command import CommandRegistry, split_arguments
 from commands import core
 from commands.setting import _check_admin_group
 from config import config
-from little_shit import check_target
+from little_shit import check_target, get_target_account
 
 Base = declarative_base()
 
@@ -20,10 +20,7 @@ _ba = ScoreBizAdapter(config.get('biz_server', [])[0])
 @check_target
 def speak_record(_, ctx_msg):
     target_type = ctx_msg.get('msg_type')
-    target_account = _get_target_account(ctx_msg)
-    date_text = datetime.now(tz=timezone('Asia/Shanghai')).strftime('%Y-%m-%d')
-    time_text = datetime.now(tz=timezone('Asia/Shanghai')).strftime('%H:%M')
-    timemark_unix = int(datetime.now(tz=timezone('Asia/Shanghai')).timestamp())
+    target_account = get_target_account(ctx_msg)
     sender_id = ctx_msg.get('sender_id')
     sender_name = ctx_msg.get('sender_name')
     message = ctx_msg.get('content')
@@ -33,9 +30,6 @@ def speak_record(_, ctx_msg):
              target_account=target_account,
              sender_id=sender_id,
              sender_name=sender_name,
-             date=date_text,
-             time=time_text,
-             timemark=timemark_unix,
              message=message)
 
 
@@ -182,7 +176,7 @@ def _queryspeak(ctx_msg, user=None, target_type=None, target_account=None, date=
         target_type = ctx_msg.get('msg_type')
 
     if target_account is None:
-        target_account = _get_target_account(ctx_msg)
+        target_account = get_target_account(ctx_msg)
 
     if user == None:
         user = ctx_msg.get('sender_id', '')
@@ -304,15 +298,3 @@ def _escape(args_text):
     return args_text.replace('&', '%26amp%3b').replace('[', '%26%2391%3b').replace(']', '%26%2393%3b')
 
 
-def _format_target(text):
-    return text.replace('g#', '群:').replace('d#', '组:').replace('p#', '单聊:')
-
-
-def _get_target_account(ctx_msg: dict):
-    if ctx_msg.get('msg_type') == 'group' and ctx_msg.get('group_id'):
-        return ctx_msg.get('group_id')
-    elif ctx_msg.get('msg_type') == 'discuss' and ctx_msg.get('discuss_id'):
-        return ctx_msg.get('discuss_id')
-    elif ctx_msg.get('msg_type') == 'private' and ctx_msg.get('sender_id'):
-        return ctx_msg.get('sender_id')
-    return None

@@ -371,7 +371,7 @@ def _help_interactively(args_text, ctx_msg, source):
         core.echo('你好，超级管理员！请输入你要查找的命令类型：\n'
                   '[1]:基础系统命令\n'
                   '[2]:拦截放行命令\n'
-                  '[3]:发言设置命令'
+                  '[3]:发言设置命令\n'
                   '[4]:发言管理命令',
                   c)
         s.state += 1

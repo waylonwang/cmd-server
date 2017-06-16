@@ -102,3 +102,15 @@ def get_fallback_command_after_nl_processors():
 
 def get_message_sources():
     return config.get('message_sources', [])
+
+def format_target(text):
+    return text.replace('g#', '群:').replace('d#', '组:').replace('p#', '单聊:')
+
+def get_target_account(ctx_msg: dict):
+    if ctx_msg.get('msg_type') == 'group' and ctx_msg.get('group_id'):
+        return ctx_msg.get('group_id')
+    elif ctx_msg.get('msg_type') == 'discuss' and ctx_msg.get('discuss_id'):
+        return ctx_msg.get('discuss_id')
+    elif ctx_msg.get('msg_type') == 'private' and ctx_msg.get('sender_id'):
+        return ctx_msg.get('sender_id')
+    return None
