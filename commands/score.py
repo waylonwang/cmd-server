@@ -113,7 +113,7 @@ def speak_record_save(args_text, ctx_msg):
     core.echo('以上～', ctx_msg)
 
 
-@cr.register('报点')
+@cr.register('--报点')
 @check_target
 def point_apply(args_text, ctx_msg, allow_interactive=True):
     source = get_source(ctx_msg)
@@ -139,7 +139,7 @@ def point_apply(args_text, ctx_msg, allow_interactive=True):
     conn.close()
 
 
-@cr.register('确认')
+@cr.register('--确认')
 @check_target
 def code_confirm(_, ctx_msg):
     conn = _open_db_conn()
